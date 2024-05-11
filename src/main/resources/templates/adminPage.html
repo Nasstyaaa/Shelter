@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Interaction</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <h1 class="my-4">Добавить животное</h1>
+    <button id="toggleAddAnimalForm" class="btn btn-primary">Добавить животное</button>
+    <form id="addAnimalForm" class="mb-4" style="display:none;">
+        <div class="form-group">
+            <label for="animalName" class="mr-sm-2">Имя животного:</label>
+            <input type="text" class="form-control" id="animalName" name="animalName">
+        </div>
+        <div class="form-group">
+            <label for="animalBreed" class="mr-sm-2">Порода:</label>
+            <input type="text" class="form-control" id="animalBreed" name="animalBreed">
+        </div>
+        <div class="form-group">
+            <label for="animalCategory" class="mr-sm-2">Категория:</label>
+            <input type="text" class="form-control" id="animalCategory" name="animalCategory">
+        </div>
+        <button type="submit" class="btn btn-primary">Добавить животное</button>
+    </form>
+
+    <h1 class="my-4">Добавить категорию</h1>
+    <button id="toggleAddCategoryForm" class="btn btn-primary">Добавить категорию</button>
+    <form id="addCategoryForm" class="mb-4" style="display:none;">
+        <div class="form-group">
+            <label for="categoryName" class="mr-sm-2">Имя категории:</label>
+            <input type="text" class="form-control" id="categoryName" name="categoryName">
+        </div>
+        <button type="submit" class="btn btn-primary">Добавить категорию</button>
+    </form>
+
+    <h1 class="my-4">Получить пользователей</h1>
+    <button id="getUsersButton" class="btn btn-primary">Получить пользователей</button>
+    <div id="usersList" class="mt-4"></div>
+
+    <h1 class="my-4">Получить запросы</h1>
+    <div class="form-group">
+        <label for="statusSelect" class="mr-sm-2">Статус:</label>
+        <select class="form-control" id="statusSelect">
+            <!-- Опции будут добавлены динамически -->
+        </select>
+    </div>
+    <button id="getFilteredRequestsButton" class="btn btn-primary mt-3">Получить отфильтрованные запросы</button>
+    <div id="filteredRequestsList" class="mt-4"></div>
+    <button id="getRequestsButton" class="btn btn-primary">Получить запросы</button>
+    <div id="requestsList" class="mt-4"></div>
+
+    <h1 class="my-4">Получить животных</h1>
+    <div class="form-group">
+        <label for="categorySelect" class="mr-sm-2">Категория:</label>
+        <select class="form-control" id="categorySelect">
+            <!-- Опции будут добавлены динамически -->
+        </select>
+    </div>
+    <button id="getAnimalsButton" class="btn btn-primary">Получить животных</button>
+    <div id="animalsList" class="mt-4"></div>
+
+    <h1 class="my-4">Получить категории</h1>
+    <button id="getCategoriesButton" class="btn btn-primary">Получить категории</button>
+    <div id="categoriesList" class="mt-4"></div>
+</div>
+<script>
+    function sendPostRequest(url, data) {
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+    }
+
+    function sendGetRequest(url) {
+        return fetch(url);
+    }
+
+    document.getElementById('addAnimalForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const animalName = document.getElementById('animalName').value;
+        const animalBreed = document.getElementById('animalBreed').value;
+        const animalCategory = document.getElementById('animalCategory').value;
+        const animalData = {
+            name: animalName,
+            breed: animalBreed,
+            category: animalCategory
+        };
+        sendPostRequest('/api/admin/animal', animalData)
+       .then(response => {
+              if (response.status === 409) {
+                  alert('Animal name already exists.');
+              } else if (response.status === 201) {
+                  alert('Animal added successfully!');
+              } else {
+                  alert('Error adding animal.');
+              }
+          })
+       .catch(error => console.error('Error adding animal:', error));
+    });
+
+    document.getElementById('addCategoryForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const categoryName = document.getElementById('categoryName').value;
+        sendPostRequest('/api/admin/category', {name: categoryName})
+       .then(response => {
+              if (response.status === 409) {
+                  alert('Category name already exists.');
+              } else if (response.status === 201) {
+                  alert('Category added successfully!');
+              } else {
+                  alert('Error adding category.');
+              }
+          })
+       .catch(error => console.error('Error adding category:', error));
+    });
+     document.getElementById('toggleAddAnimalForm').addEventListener('click', function() {
+        const addAnimalForm = document.getElementById('addAnimalForm');
+        if (addAnimalForm.style.display === 'none') {
+            addAnimalForm.style.display = 'block';
+        } else {
+            addAnimalForm.style.display = 'none';
+        }
+    });
+
+    document.getElementById('toggleAddCategoryForm').addEventListener('click', function() {
+        const addCategoryForm = document.getElementById('addCategoryForm');
+        if (addCategoryForm.style.display === 'none') {
+            addCategoryForm.style.display = 'block';
+        } else {
+            addCategoryForm.style.display = 'none';
+        }
+    });
+
+
+    const usersListElement = document.getElementById('usersList');
+    const requestsListElement = document.getElementById('requestsList');
+    const animalsListElement = document.getElementById('animalsList');
+    const categoriesListElement = document.getElementById('categoriesList');
+
+    function displayUsersList(users) {
+        usersListElement.innerHTML = '';
+        users.forEach(user => {
+            const userCard = document.createElement('div');
+            userCard.className = 'card mb-3';
+
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+
+            const userText = document.createElement('p');
+            userText.className = 'card-text';
+            userText.textContent = `ID: ${user.id}, Name: ${user.name}`;
+
+            cardBody.appendChild(userText);
+            userCard.appendChild(cardBody);
+            usersListElement.appendChild(userCard);
+        });
+    }
+
+    function populateStatusSelect(statuses) {
+        const selectElement = document.getElementById('statusSelect');
+        statuses.forEach(status => {
+            const option = document.createElement('option');
+            option.value = status;
+            option.textContent = status;
+            selectElement.appendChild(option);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+             const statusSelect = document.getElementById('statusSelect');
+        const newOption = document.createElement('option');
+        newOption.value = 'NEW';
+        newOption.textContent = 'NEW';
+        statusSelect.appendChild(newOption);
+
+        const approveOption = document.createElement('option');
+        approveOption.value = 'APPROVED';
+        approveOption.textContent = 'APPROVED';
+        statusSelect.appendChild(approveOption);
+
+        const rejectOption = document.createElement('option');
+        rejectOption.value = 'REJECTED';
+        rejectOption.textContent = 'REJECTED';
+        statusSelect.appendChild(rejectOption);
+    });
+
+
+    document.getElementById('statusSelect').addEventListener('change', function() {
+        const status = this.value;
+        getFilteredRequests(status);
+    });
+
+    function getFilteredRequests(status) {
+        sendGetRequest('/api/admin/requests/' + status)
+       .then(response => response.json())
+       .then(data => {
+                console.log('Filtered Requests:', data);
+                displayFilteredRequestsList(data);
+            })
+       .catch(error => console.error('Error getting filtered requests:', error));
+    }
+
+    function displayFilteredRequestsList(requests) {
+        const filteredRequestsListElement = document.getElementById('filteredRequestsList');
+        filteredRequestsListElement.innerHTML = '';
+        requests.forEach(request => {
+            const requestCard = document.createElement('div');
+            requestCard.className = 'card mb-3';
+
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+
+            const requestInfo = document.createElement('p');
+            requestInfo.className = 'card-text';
+            requestInfo.textContent = `ID: ${request.id}, Status: ${request.status}, Animal Name: ${request.animal.name}, User Name: ${request.user.name}`;
+
+            // Добавление кнопок Approve и Reject
+            const approveButton = document.createElement('button');
+            approveButton.className = 'btn btn-success mr-2';
+            approveButton.textContent = 'Approve';
+            approveButton.addEventListener('click', function() {
+                approveRequest(request.id);
+            });
+
+            const rejectButton = document.createElement('button');
+            rejectButton.className = 'btn btn-danger';
+            rejectButton.textContent = 'Reject';
+            rejectButton.addEventListener('click', function() {
+                rejectRequest(request.id);
+            });
+
+            cardBody.appendChild(requestInfo);
+            cardBody.appendChild(approveButton);
+            cardBody.appendChild(rejectButton);
+            requestCard.appendChild(cardBody);
+            filteredRequestsListElement.appendChild(requestCard);
+        });
+    }
+
+    function displayRequestsList(requests) {
+        requestsListElement.innerHTML = '';
+        requests.forEach(request => {
+            const requestCard = document.createElement('div');
+            requestCard.className = 'card mb-3';
+
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+
+            const requestInfo = document.createElement('p');
+            requestInfo.className = 'card-text';
+            // Include animal name and user name in the requestInfo
+            requestInfo.textContent = `ID: ${request.id}, Status: ${request.status}, Animal Name: ${request.animal.name}, User Name: ${request.user.name}`;
+
+            const approveButton = document.createElement('button');
+            approveButton.className = 'btn btn-success mr-2';
+            approveButton.textContent = 'Approve';
+            approveButton.addEventListener('click', function() {
+                approveRequest(request.id);
+            });
+
+            const rejectButton = document.createElement('button');
+            rejectButton.className = 'btn btn-danger';
+            rejectButton.textContent = 'Reject';
+            rejectButton.addEventListener('click', function() {
+                rejectRequest(request.id);
+            });
+
+            cardBody.appendChild(requestInfo);
+            cardBody.appendChild(approveButton);
+            cardBody.appendChild(rejectButton);
+            requestCard.appendChild(cardBody);
+            requestsListElement.appendChild(requestCard);
+        });
+    }
+
+    function approveRequest(requestId) {
+        sendPostRequest('/api/admin/approveRequest/' + requestId)
+       .then(response => {
+                if (response.ok) {
+                    alert('Request approved successfully!');
+                    // Refresh the requests list after approval
+                    getRequests();
+                } else {
+                    alert('Error approving request.');
+                }
+            })
+       .catch(error => console.error('Error approving request:', error));
+    }
+
+    function rejectRequest(requestId) {
+        sendPostRequest('/api/admin/rejectRequest/' + requestId)
+       .then(response => {
+                if (response.ok) {
+                    alert('Request rejected successfully!');
+                    // Refresh the requests list after rejection
+                    getRequests();
+                } else {
+                    alert('Error rejecting request.');
+                }
+            })
+       .catch(error => console.error('Error rejecting request:', error));
+    }
+
+    document.getElementById('getUsersButton').addEventListener('click', function() {
+        sendGetRequest('/api/admin/users')
+        .then(response => response.json())
+        .then(data => {
+                console.log('Users:', data);
+                displayUsersList(data);
+            })
+        .catch(error => console.error('Error getting users:', error));
+    });
+
+    document.getElementById('getRequestsButton').addEventListener('click', function() {
+        getRequests();
+    });
+
+    function getRequests() {
+        sendGetRequest('/api/admin/requests')
+       .then(response => response.json())
+       .then(data => {
+                console.log('Requests:', data);
+                displayRequestsList(data);
+            })
+       .catch(error => console.error('Error getting requests:', error));
+    }
+
+    document.getElementById('getAnimalsButton').addEventListener('click', function() {
+        sendGetRequest('/api/animals')
+        .then(response => response.json())
+        .then(data => {
+                console.log('Animals:', data);
+                displayAnimalsList(data);
+            })
+        .catch(error => console.error('Error getting animals:', error));
+    });
+
+    document.getElementById('getCategoriesButton').addEventListener('click', function() {
+        sendGetRequest('/api/categories')
+       .then(response => response.json())
+       .then(data => {
+                console.log('Categories:', data);
+                displayCategoriesList(data);
+            })
+       .catch(error => console.error('Error getting categories:', error));
+    });
+
+    function displayAnimalsList(categoryId) {
+        animalsListElement.innerHTML = '';
+        sendGetRequest('/api/animals/' + categoryId)
+      .then(response => response.json())
+      .then(data => {
+                console.log('Animals:', data);
+                displayAnimals(data);
+            })
+      .catch(error => console.error('Error getting animals:', error));
+    }
+
+    function displayAnimals(animals) {
+        animals.forEach(animal => {
+            const animalCard = document.createElement('div');
+            animalCard.className = 'card mb-3';
+
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+
+            const animalText = document.createElement('p');
+            animalText.className = 'card-text';
+            animalText.textContent = `ID: ${animal.id}, Name: ${animal.name}, Breed: ${animal.breed}`;
+
+            cardBody.appendChild(animalText);
+            animalCard.appendChild(cardBody);
+            animalsListElement.appendChild(animalCard);
+        });
+    }
+
+    document.getElementById('categorySelect').addEventListener('change', function() {
+        const categoryId = this.value;
+        displayAnimalsList(categoryId);
+    });
+
+    function populateCategorySelect(categories) {
+        const selectElement = document.getElementById('categorySelect');
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            selectElement.appendChild(option);
+        });
+    }
+
+    // Вызовите функцию populateCategorySelect при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+            sendGetRequest('/api/categories')
+        .then(response => response.json())
+        .then(data => {
+                populateCategorySelect(data);
+            })
+        .catch(error => console.error('Error getting categories:', error));
+    });
+
+    function displayCategoriesList(categories) {
+        categoriesListElement.innerHTML = '';
+        categories.forEach(category => {
+            const categoryCard = document.createElement('div');
+            categoryCard.className = 'card mb-3';
+
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+
+            const categoryText = document.createElement('p');
+            categoryText.className = 'card-text';
+            categoryText.textContent = `ID: ${category.id}, Name: ${category.name}`;
+
+            cardBody.appendChild(categoryText);
+            categoryCard.appendChild(cardBody);
+            categoriesListElement.appendChild(categoryCard);
+        });
+    }
+
+</script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

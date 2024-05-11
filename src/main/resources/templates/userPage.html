@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Interaction</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+       .fullscreen-image-container {
+            width: 100vw;
+            box-sizing: border-box;
+            margin: 0;
+        }
+       .fullscreen-image {
+            width: 70%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+<body>
+<div class="container">
+    <div class="fullscreen-image-container">
+            <img src="../static/img/userPets.jpg"
+                th:src="@{/img/userPets.jpg}" class="fullscreen-image"  alt="Животные" />
+    </div>
+    <h1 class="my-4">Создать запрос</h1>
+    <form id="createRequestForm">
+        <div class="form-group">
+            <label for="animalName">Имя животного:</label>
+            <input type="text" class="form-control" id="nameAnimal" name="nameAnimal">
+        </div>
+        <button type="submit" class="btn btn-primary">Создать запрос</button>
+    </form>
+
+    <h1 class="my-4">Получить животных</h1>
+    <button id="getAnimalsButton" class="btn btn-primary">Получить животных</button>
+    <div id="animalsList" class="mt-4"></div>
+
+    <h1 class="my-4">Просмотреть запросы пользователя</h1>
+    <button id="viewUserRequestsButton" class="btn btn-primary">Просмотреть запросы пользователя</button>
+    <div id="userRequestsList" class="mt-4"></div>
+</div>
+
+<script>
+        document.getElementById('createRequestForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const animalName = document.getElementById('nameAnimal').value;
+            fetch('/api/user/createRequest', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({name: animalName})
+            })
+            .then(response => {
+                  if (response.status === 409) {
+                      alert('Animal name not exists.');
+                  } else if (response.status === 201) {
+                      alert('Request added successfully!');
+                  } else {
+                      alert('Error adding request.');
+                  }
+              })
+            .catch(error => console.error('Error:', error));
+        });
+
+       document.getElementById('getAnimalsButton').addEventListener('click', function() {
+            fetch('/api/animals')
+           .then(response => response.json())
+           .then(data => {
+                const animalsList = document.getElementById('animalsList');
+                animalsList.innerHTML = ''; // Очищаем список перед добавлением новых карточек
+                // Фильтруем животных, оставляя только те, у которых availability равно true
+                const availableAnimals = data.filter(animal => animal.availability === true);
+                availableAnimals.forEach(animal => {
+                    // Создаем карточку для каждого животного
+                    const animalCard = document.createElement('div');
+                    animalCard.className = 'card mb-3'; // Класс для стилизации карточки
+                    const cardBody = document.createElement('div');
+                    cardBody.className = 'card-body';
+                    const animalName = document.createElement('h5');
+                    animalName.className = 'card-title';
+                    animalName.textContent = `Имя: ${animal.name}, Порода: ${animal.breed}`; // Отображаем имя и породу животного
+                    cardBody.appendChild(animalName);
+                    animalCard.appendChild(cardBody);
+                    animalsList.appendChild(animalCard);
+                });
+            })
+           .catch(error => console.error('Ошибка:', error));
+       });
+
+        document.getElementById('viewUserRequestsButton').addEventListener('click', function() {
+            fetch('/api/requests/user')
+          .then(response => response.json())
+          .then(data => {
+                    const userRequestsList = document.getElementById('userRequestsList');
+                    userRequestsList.innerHTML = ''; // Очищаем список перед добавлением новых карточек
+                    data.forEach(request => {
+                        // Создаем карточку для каждого запроса
+                        const requestCard = document.createElement('div');
+                        requestCard.className = 'card mb-3'; // Класс для стилизации карточки
+                        const cardBody = document.createElement('div');
+                        cardBody.className = 'card-body';
+                        const requestId = document.createElement('h5');
+                        requestId.className = 'card-title';
+                        requestId.textContent = `ID: ${request.id}, Статус: ${request.status}`; // Отображаем ID и статус запроса
+                        cardBody.appendChild(requestId);
+                        requestCard.appendChild(cardBody);
+                        userRequestsList.appendChild(requestCard);
+                    });
+                })
+          .catch(error => console.error('Ошибка:', error));
+        });
+</script>
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

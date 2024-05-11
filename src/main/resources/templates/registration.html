@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Registration</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+    .image-container {
+            position: relative;
+            width: 140%;
+            height: 60%; /* Устанавливаем фиксированную высоту контейнера изображения */
+            margin-top: 20%; /* Добавляем отступ сверху, чтобы опустить изображение ниже */
+        }
+        img {
+            width: 100%; /* Изображение занимает всю ширину контейнера */
+            height: 100%; /* Изображение занимает всю высоту контейнера */
+            object-fit: cover; /* Изображение заполняет контейнер, сохраняя свои пропорции */
+        }
+    .centered-text {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            text-align: center;
+    }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="image-container mt-5">
+        <img src="../static/img/pets.png"
+             th:src="@{/img/pets.png}" alt="Животные" width="2000" height="817"/>
+        <div class="centered-text">
+            <h1 class="text-center">Страница регистрации</h1>
+            <form id="registrationForm" class="mt-5">
+                <div class="form-group">
+                    <label for="name">Имя:</label>
+                    <input type="text" class="form-control" id="name" name="name">
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль:</label>
+                    <input type="password" class="form-control" id="password" name="password">
+                </div>
+                <button type="submit" class="btn btn-primary">Отправить</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById('registrationForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        var name = document.getElementById('name').value;
+        var password = document.getElementById('password').value;
+
+        var user = {
+            name: name,
+            password: password,
+        };
+
+        $.ajax({
+            url: '/api/user/saveUser', // Используем правильный URL
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(user),
+            success: function(response) {
+                console.log(response);
+                window.location.href = '/login';
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error(jqXHR, textStatus, errorThrown);
+                if (jqXHR.status === 409) {
+                    alert('Username already exists. Please choose a different username.');
+                } else {
+                    alert('An error occurred. Please try again.');
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>
