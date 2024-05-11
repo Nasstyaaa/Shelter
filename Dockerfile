@@ -6,6 +6,7 @@
 FROM gradle:7.3.3-jdk17 as builder
 WORKDIR /app
 COPY . .
+RUN chmod +x gradlew
 RUN ./gradlew build
 FROM openjdk:17
 WORKDIR /app
