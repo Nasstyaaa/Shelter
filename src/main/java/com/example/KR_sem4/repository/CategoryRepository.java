@@ -1,7 +1,6 @@
 package com.example.KR_sem4.repository;
 
 import com.example.KR_sem4.entity.Category;
-import com.example.KR_sem4.entity.Request;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {

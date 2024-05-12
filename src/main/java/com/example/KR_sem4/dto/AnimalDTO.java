@@ -1,6 +1,5 @@
 package com.example.KR_sem4.dto;
 
-import com.example.KR_sem4.entity.Category;
 import lombok.Getter;
 import lombok.Setter;
 

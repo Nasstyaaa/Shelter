@@ -78,7 +78,7 @@
                 const animalsList = document.getElementById('animalsList');
                 animalsList.innerHTML = ''; // Очищаем список перед добавлением новых карточек
                 // Фильтруем животных, оставляя только те, у которых availability равно true
-                const availableAnimals = data.filter(animal => animal.availability === true);
+                const availableAnimals = data.filter(animal => animal.isAvailable === true);
                 availableAnimals.forEach(animal => {
                     // Создаем карточку для каждого животного
                     const animalCard = document.createElement('div');

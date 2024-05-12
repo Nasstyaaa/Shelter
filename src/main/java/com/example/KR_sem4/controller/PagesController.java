@@ -13,17 +13,17 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Controller
-@RequestMapping("/home")
+@RequestMapping("/")
 @AllArgsConstructor
 public class PagesController {
 
     private final UserService userService;
-    @GetMapping("/welcome")
+    @GetMapping
     public String welcomePage(){
         return "welcome";
     }
 
-    @GetMapping("/redirectUser")
+    @GetMapping("/home/redirectUser")
     public String redirectUser(Principal principal){
         Optional<User> userOptional = userService.findUserByName(principal.getName());
         User user = userOptional.orElseThrow(() -> new RuntimeException("User not found"));
@@ -36,19 +36,19 @@ public class PagesController {
         return name;
     }
 
-    @GetMapping("/user")
+    @GetMapping("/home/user")
     @PreAuthorize("hasAuthority('USER')")
     public String userPage(){
         return "userPage";
     }
 
-    @GetMapping("/admin")
+    @GetMapping("/home/admin")
     @PreAuthorize("hasAuthority('ADMIN')")
     public String adminPage(){
         return "adminPage";
     }
 
-    @GetMapping("/registry")
+    @GetMapping("/home/registry")
     public String allPage(){
         return "registration";
     }

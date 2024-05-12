@@ -1,6 +1,5 @@
 package com.example.KR_sem4.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,6 +14,6 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="название")
+    @Column(name="name")
     private String name;
 }

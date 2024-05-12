@@ -24,7 +24,7 @@ public class AnimalService {
                .name(animalsDTO.getName())
                .breed(animalsDTO.getBreed())
                .category(category)
-               .availability(true)
+               .isAvailable(true)
                .build();
         return animalRepository.save(animal);
     }

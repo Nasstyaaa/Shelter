@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -45,7 +44,7 @@ public class RequestService {
     public void approveRequest(Long request_id){
         Request request =  requestRepository.findRequestById(request_id);
         Long animal_id = request.getAnimal().getId();
-        request.getAnimal().setAvailability(false);
+        request.getAnimal().setIsAvailable(false);
         request.setStatus("APPROVED");
         for(Request req : requestRepository.findAll()){
             if(Objects.equals(req.getStatus(), "NEW") && Objects.equals(req.getAnimal().getId(), animal_id)){

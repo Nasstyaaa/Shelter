@@ -14,18 +14,17 @@ public class Animal {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "имя")
+    @Column(name = "name")
     private String name;
 
-    @Column(name = "порода")
+    @Column(name = "breed")
     private String breed;
 
-    @Column(name = "доступность")
-    private Boolean availability;
+    @Column(name = "is_available")
+    private Boolean isAvailable;
 
-    //TODO исправить в фронте отправку
     @ManyToOne
-    @JoinColumn(name = "категория_id")
+    @JoinColumn(name = "category_id")
     private Category category;
 
 }
